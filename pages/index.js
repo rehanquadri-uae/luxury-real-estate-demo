@@ -20,10 +20,11 @@ export default function Home() {
   useEffect(() => {
   fetch("/data/viento_inventory.json")
     .then((r) => r.json())
-    .then((json) => {
-      console.log("Loaded JSON:", json);
-      setData(json); // ✅ inside here
-    })
+  .then((json) => {
+  console.log("Loaded JSON:", json);
+  setData(json);
+})
+
     .catch((e) => console.error("Failed to load inventory JSON", e));
 }, []);
 
