@@ -21,7 +21,7 @@ export default function Home() {
         fetch("/data/viento_inventory.json")
       .then((r) => r.json())
       .then((json) => {
-      console.log("📦 Loaded JSON:", json);
+      console.log("Loaded JSON:", json);
       .then(setData)
       .catch((e) => console.error("Failed to load inventory JSON", e));
   }, []);
