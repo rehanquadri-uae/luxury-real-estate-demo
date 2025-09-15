@@ -20,13 +20,13 @@ export default function Home() {
   useEffect(() => {
   fetch("/viento_inventory.json")
     .then((r) => r.json())
-  .then((json) => {
-  console.log("Loaded JSON:", json);
-  setData(json);
-})
-
-    .catch((e) => console.error("Failed to load inventory JSON", e));
+    .then((json) => {
+      console.log("✅ Loaded JSON:", json); // <--- Debug log
+      setData(json);
+    })
+    .catch((e) => console.error("❌ Failed to load inventory JSON", e));
 }, []);
+
 
 
   // Counters (Available / On Hold / Booked / Sold) from full records
