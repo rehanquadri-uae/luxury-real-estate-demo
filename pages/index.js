@@ -18,9 +18,10 @@ export default function Home() {
   const [selected, setSelected] = useState(null); // selected unit for modal
 
   useEffect(() => {
-    // Load the JSON we placed in /public/data/
-    fetch("/data/viento_inventory.json")
+        fetch("/data/viento_inventory.json")
       .then((r) => r.json())
+      .then((json) => {
+      console.log("📦 Loaded JSON:", json);
       .then(setData)
       .catch((e) => console.error("Failed to load inventory JSON", e));
   }, []);
