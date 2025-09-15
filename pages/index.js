@@ -21,10 +21,10 @@ export default function Home() {
   fetch("/viento_inventory.json")
     .then((r) => r.json())
     .then((json) => {
-      console.log("✅ Loaded JSON:", json); // <--- Debug log
+      console.log("Loaded JSON:", json); // <--- Debug log
       setData(json);
     })
-    .catch((e) => console.error("❌ Failed to load inventory JSON", e));
+    .catch((e) => console.error("Failed to load inventory JSON", e));
 }, []);
 
 
