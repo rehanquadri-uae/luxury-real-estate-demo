@@ -18,13 +18,15 @@ export default function Home() {
   const [selected, setSelected] = useState(null); // selected unit for modal
 
   useEffect(() => {
-        fetch("/data/viento_inventory.json")
-      .then((r) => r.json())
-      .then((json) => {
+  fetch("/data/viento_inventory.json")
+    .then((r) => r.json())
+    .then((json) => {
       console.log("Loaded JSON:", json);
-      .then(setData)
-      .catch((e) => console.error("Failed to load inventory JSON", e));
-  }, []);
+      setData(json); // ✅ inside here
+    })
+    .catch((e) => console.error("Failed to load inventory JSON", e));
+}, []);
+
 
   // Counters (Available / On Hold / Booked / Sold) from full records
   const counters = useMemo(() => {
