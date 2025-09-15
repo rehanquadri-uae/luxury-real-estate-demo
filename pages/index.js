@@ -18,7 +18,7 @@ export default function Home() {
   const [selected, setSelected] = useState(null); // selected unit for modal
 
   useEffect(() => {
-  fetch("/data/viento_inventory.json")
+  fetch("/viento_inventory.json")
     .then((r) => r.json())
   .then((json) => {
   console.log("Loaded JSON:", json);
