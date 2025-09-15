@@ -1,0 +1,263 @@
+import React, { useEffect, useMemo, useState } from "react";
+
+const MOCK_PROJECTS = [
+  { id: "p1", name: "AVA by the Bay", type: "residential", location: "Dubai Marina", is_active: true },
+  { id: "p2", name: "OPUS Tower", type: "commercial", location: "Business Bay", is_active: true },
+];
+
+const STATUSES = ["available", "on_hold", "booked", "sold"] as const;
+
+function randomStatus() {
+  const r = Math.random();
+  if (r < 0.55) return "available";
+  if (r < 0.7) return "on_hold";
+  if (r < 0.9) return "booked";
+  return "sold";
+}
+
+const statusColors: Record<string, string> = {
+  available: "#16a34a",
+  on_hold: "#f59e0b",
+  booked: "#3b82f6",
+  sold: "#ef4444",
+};
+
+const AED = (n: number) =>
+  new Intl.NumberFormat("en-AE", {
+    style: "currency",
+    currency: "AED",
+    maximumFractionDigits: 0,
+  }).format(n);
+
+function generateUnits(projectId: string) {
+  const floors = Array.from({ length: 10 }, (_, i) => 10 - i);
+  const units: any[] = [];
+  floors.forEach((level) => {
+    for (let i = 1; i <= 8; i++) {
+      const status = randomStatus();
+      units.push({
+        id: `${projectId}-F${level}-U${i}`,
+        projectId,
+        unit_no: `${level}0${i}`,
+        floor_level: level,
+        unit_type: i % 3 === 0 ? "3BR" : i % 2 === 0 ? "2BR" : "1BR",
+        total_area: 90 + i * 8 + level * 2,
+        parking_count: i % 4 === 0 ? 2 : 1,
+        price_aed: 1800000 + level * 150000 + i * 50000,
+        status,
+      });
+    }
+  });
+  return units;
+}
+
+function useMockRealtime(projectId: string) {
+  const [units, setUnits] = useState<any[]>(() => generateUnits(projectId));
+
+  useEffect(() => {
+    setUnits(generateUnits(projectId));
+  }, [projectId]);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setUnits((prev) => {
+        const copy = [...prev];
+        const idx = Math.floor(Math.random() * copy.length);
+        const u = { ...copy[idx] };
+        const transitions: Record<string, string[]> = {
+          available: ["on_hold", "booked", "sold"],
+          on_hold: ["available", "booked"],
+          booked: ["sold", "on_hold"],
+          sold: ["sold"],
+        };
+        const nexts = transitions[u.status] || [u.status];
+        u.status = nexts[Math.floor(Math.random() * nexts.length)];
+        copy[idx] = u;
+        return copy;
+      });
+    }, 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  return { units, setUnits };
+}
+
+function useCounts(units: any[]) {
+  return useMemo(() => {
+    const counters = { available: 0, on_hold: 0, booked: 0, sold: 0 };
+    for (const u of units) counters[u.status]++;
+    return counters;
+  }, [units]);
+}
+
+function Badge({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="rounded-xl px-3 py-2 text-white text-sm font-medium" style={{ background: color }}>
+      {label}: {value}
+    </div>
+  );
+}
+
+function UnitCard({ u, onClick }: { u: any; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="border rounded-2xl p-3 text-left hover:shadow transition w-full">
+      <div className="flex items-center justify-between">
+        <div className="font-semibold">Unit {u.unit_no}</div>
+        <span className="text-xs text-white px-2 py-1 rounded" style={{ background: statusColors[u.status] }}>
+          {String(u.status).replace("_", " ")}
+        </span>
+      </div>
+      <div className="text-sm mt-1 opacity-80">
+        Floor {u.floor_level} • {u.unit_type} • {u.total_area} sqm • {u.parking_count} parking
+      </div>
+      <div className="mt-2 font-bold">{AED(u.price_aed)}</div>
+    </button>
+  );
+}
+
+function UnitModal({ u, onClose, onStatus }: { u: any; onClose: () => void; onStatus: (s: string) => void }) {
+  if (!u) return null;
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center p-4 z-50">
+      <div className="bg-white w-full md:w-[560px] rounded-2xl p-5 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="text-xl font-semibold">Unit {u.unit_no}</div>
+          <button className="text-gray-500 hover:text-black" onClick={onClose}>✕</button>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+          <div className="opacity-70">Floor</div><div>{u.floor_level}</div>
+          <div className="opacity-70">Type</div><div>{u.unit_type}</div>
+          <div className="opacity-70">Total Area</div><div>{u.total_area} sqm</div>
+          <div className="opacity-70">Parking</div><div>{u.parking_count}</div>
+          <div className="opacity-70">Status</div>
+          <div>
+            <span className="text-xs text-white px-2 py-1 rounded" style={{ background: statusColors[u.status] }}>
+              {String(u.status).replace("_", " ")}
+            </span>
+          </div>
+          <div className="opacity-70">Price</div><div className="font-semibold">{AED(u.price_aed)}</div>
+        </div>
+        <div className="mt-4 border-t pt-4">
+          <div className="text-sm font-medium mb-2">Quick status change (admin demo)</div>
+          <div className="flex gap-2 flex-wrap">
+            {STATUSES.map((s) => (
+              <button
+                key={s}
+                onClick={() => onStatus(s)}
+                className="px-3 py-2 rounded-xl text-white text-sm"
+                style={{ background: statusColors[s] }}
+              >
+                {s.replace("_", " ")}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [projectId, setProjectId] = useState(MOCK_PROJECTS[0].id);
+  const { units, setUnits } = useMockRealtime(projectId);
+  const counts = useCounts(units);
+  const [selected, setSelected] = useState<any | null>(null);
+  const [adminMode, setAdminMode] = useState(false);
+
+  const filtered = units.sort((a, b) => a.floor_level - b.floor_level || a.unit_no.localeCompare(b.unit_no));
+
+  const handleStatus = (status: string) => {
+    if (!selected) return;
+    setUnits((prev) => prev.map((u) => (u.id === selected.id ? { ...u, status } : u)));
+    setSelected((s: any) => ({ ...s, status }));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <div className="sticky top-0 z-40 backdrop-blur bg-white/80 border-b">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-2xl bg-black text-white grid place-items-center font-bold">L</div>
+            <div className="font-semibold tracking-tight">Luxury Launch Tracker</div>
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              className="border rounded-xl px-3 py-2 text-sm"
+            >
+              {MOCK_PROJECTS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} — {p.location}
+                </option>
+              ))}
+            </select>
+            <button
+              className={`px-3 py-2 rounded-xl text-sm border ${adminMode ? "bg-black text-white" : "bg-white"}`}
+              onClick={() => setAdminMode((v) => !v)}
+              title="Toggle admin demo"
+            >
+              {adminMode ? "Admin: ON" : "Admin: OFF"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="mt-6 flex gap-2 flex-wrap">
+          <Badge label="Available" value={counts.available} color={statusColors.available} />
+          <Badge label="On hold" value={counts.on_hold} color={statusColors.on_hold} />
+          <Badge label="Booked" value={counts.booked} color={statusColors.booked} />
+          <Badge label="Sold" value={counts.sold} color={statusColors.sold} />
+        </div>
+
+        <div className="mt-6 border rounded-2xl p-4 bg-white">
+          <div className="text-sm opacity-70 mb-2">Building façade (demo)</div>
+          <div className="grid grid-cols-8 gap-2">
+            {filtered.map((u) => (
+              <div
+                key={u.id}
+                onClick={() => setSelected(u)}
+                className="aspect-square rounded-lg cursor-pointer border flex items-center justify-center text-xs"
+                style={{ background: `${statusColors[u.status]}20`, borderColor: `${statusColors[u.status]}80` }}
+                title={`Unit ${u.unit_no}`}
+              >
+                {u.unit_no}
+              </div>
+            ))}
+          </div>
+          <div className="text-xs opacity-60 mt-2">
+            Tap a unit to view details. Colors reflect status. (3D façade can be added later via react-three-fiber.)
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-lg font-semibold">Units</div>
+            <div className="text-sm opacity-70">Showing {filtered.length} units</div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((u) => (
+              <UnitCard key={u.id} u={u} onClick={() => setSelected(u)} />
+            ))}
+          </div>
+        </div>
+
+        <div className="h-16" />
+      </div>
+
+      {selected && (
+        <UnitModal
+          u={selected}
+          onClose={() => setSelected(null)}
+          onStatus={(s) => {
+            if (!adminMode) return alert("Admin demo is OFF. Toggle it in the header.");
+            handleStatus(s);
+          }}
+        />
+      )}
+
+      <div className="mt-10 py-8 text-center text-xs opacity-60">AED pricing • Real-time demo • PWA-ready</div>
+    </div>
+  );
+}
