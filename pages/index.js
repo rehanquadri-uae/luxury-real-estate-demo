@@ -121,6 +121,10 @@ export default function Home() {
   return (
     <main style={pageStyle}>
       <h1 style={titleStyle}>🏢 Luxury Real Estate — {data?.project_name || "Project"}</h1>
+<pre style={{ textAlign: "left", maxWidth: "100%", overflowX: "auto", fontSize: "12px", background: "#eee", padding: "8px", borderRadius: "8px" }}>
+  {data ? JSON.stringify(data, null, 2) : "Loading..."}
+</pre>
+
 
       {/* Counters */}
       <div style={gridWrap}>
