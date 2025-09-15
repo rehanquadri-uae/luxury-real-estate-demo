@@ -822,16 +822,16 @@
       {
         "unit_no": "None",
         "unit_label": "null",
-        "view": N/A,
+        "view": "N/A",
         "floor_no": null,
-        "unit_type": N/A,
+        "unit_type": "N/A",
         "rooms": null,
         "parking": null,
         "total_area": 315320.37757500005,
         "rate_per_sqft": null,
         "sales_value": 2069459056.0,
         "status": "available",
-        "status_raw": N/A
+        "status_raw": "N/A"
       }
     ]
   },
@@ -1595,16 +1595,16 @@
     {
       "unit_no": "None",
       "unit_label": "null",
-      "view": N/A,
+      "view": "N/A",
       "floor_no": null,
-      "unit_type": N/A,
+      "unit_type": "N/A",
       "rooms": null,
       "parking": null,
       "total_area": 315320.37757500005,
       "rate_per_sqft": null,
       "sales_value": 2069459056.0,
       "status": "available",
-      "status_raw": N/A
+      "status_raw": "N/A"
     }
   ]
 }
